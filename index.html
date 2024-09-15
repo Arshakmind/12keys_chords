@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Progression Generator</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            padding: 20px;
+            color: #4285F4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        label {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            background-color: #357ae8;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        #result p {
+            font-size: 18px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 22px;
+            }
+
+            label, input[type="text"], button {
+                font-size: 14px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            #result p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>12 Keys Chord Progression Generator</h1>
+    
+    <div class="container">
+        <label for="chordInput">Enter a Chord Progression (e.g. d m7, g 7, c maj7): <br> Use a space between the root and the chord quality, use a comma between chords</label>
+        <input type="text" id="chordInput" placeholder="Enter chords" value="d m7, g 7, c maj7">
+
+        <button onclick="generateProgressions()">Generate Progressions</button>
+        <button onclick="randomizeProgressions()">Randomize Progressions</button>
+        
+        <h2>All 12 Keys:</h2>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let currentVariations = [];
+
+        function stringToChords(chordString) {
+            let chords = chordString.split(", ");
+            let splitChords = chords.map(chord => {
+                let parts = chord.split(" ");
+                parts[0] = parts[0].toUpperCase();
+                return parts;
+            });
+            return splitChords;
+        }
+
+        function letterToNumber(chord) {
+            const notes = {
+                "C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, 
+                "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11
+            };
+            return notes[chord[0]] ?? null;
+        }
+
+        function progressionToNumbers(progression) {
+            return progression.map(chord => [letterToNumber(chord[0]), chord[1]]);
+        }
+
+        function createKeyVariations(chordProgression) {
+            let keyVariations = [];
+            for (let i = 0; i < 12; i++) {
+                let newProgression = chordProgression.map(chord => [(chord[0] + i) % 12, chord[1]]);
+                keyVariations.push(newProgression);
+            }
+            return keyVariations;
+        }
+
+        function numberToLetter(number) {
+            const notes = {
+                0: "C", 1: "Db", 2: "D", 3: "Eb", 4: "E", 5: "F", 6: "F#", 7: "G", 8: "Ab", 9: "A", 10: "Bb", 11: "B"
+            };
+            return notes[number] ?? null;
+        }
+
+        function keyVariationsToLetters(keyVariations) {
+            return keyVariations.map(progression => {
+                return progression.map(chord => [numberToLetter(chord[0]), chord[1]]);
+            });
+        }
+
+        function printVariations(letterVariations) {
+            let resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = ''; // Clear previous result
+            letterVariations.forEach(variation => {
+                let variationStr = variation.map(chord => chord[0] + chord[1]).join(" | ");
+                resultDiv.innerHTML += `<p><ul><li>${variationStr}</li></ul></p>`;
+            });
+        }
+
+        function generateProgressions() {
+            let chordString = document.getElementById("chordInput").value;
+            let splitChords = stringToChords(chordString);
+            let numberedProgression = progressionToNumbers(splitChords);
+            let keyVariations = createKeyVariations(numberedProgression);
+            currentVariations = keyVariationsToLetters(keyVariations);
+            printVariations(currentVariations);
+        }
+
+        function randomizeArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function randomizeProgressions() {
+            if (currentVariations.length > 0) {
+                let randomizedVariations = randomizeArray(currentVariations);
+                printVariations(randomizedVariations);
+            } else {
+                alert("Please generate the progressions first!");
+            }
+        }
+    </script>
+</body>
+</html>
